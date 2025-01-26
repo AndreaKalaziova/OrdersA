@@ -44,6 +44,6 @@ namespace Orders.Data.Models
 		/// items on the order (required)
 		/// </summary>
 		[Required, MinLength(1, ErrorMessage = "Alespoň jedna položka musí být uvedena.")]
-		public IList<Product> OrderItems { get; set; } = new List<Product>(); // inic. as empty list, so it is not null by default
+		public IList<OrderItem> OrderItems { get; set; } = new List<OrderItem>(); // inic. as empty list, so it is not null by default
 	}
 }

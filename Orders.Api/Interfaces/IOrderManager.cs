@@ -4,7 +4,7 @@ namespace Orders.Api.Interfaces
 {
 	public interface IOrderManager
 	{
-		OrderDTO AddOrder(OrderDTO orderDTO);
+		Task<OrderDTO> AddOrderAsync(OrderInsertDTO orderInsertDTO);
 		Task <IList<OrderDTO>> GetAllOrdersAsync();
 		Task<OrderDTO> UpdateOrderStateAsync(PaymentInfoDTO paymentInfo);
 	}

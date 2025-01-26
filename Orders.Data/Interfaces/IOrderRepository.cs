@@ -11,6 +11,13 @@ namespace Orders.Data.Interfaces
 		Task <IList<Order>> GetAllAsync();
 
 		/// <summary>
+		/// insert new order to db
+		/// </summary>
+		/// <param name="order"></param>
+		/// <returns>newly added order</returns>
+		Task <Order> InsertAsync (Order order);
+
+		/// <summary>
 		/// Checks if an order with the given OrderNumber exists in the repository.
 		/// </summary>
 		bool ExistsWithOrderNumber(ulong orderNumber);

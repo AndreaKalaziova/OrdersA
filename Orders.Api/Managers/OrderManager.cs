@@ -32,16 +32,18 @@ namespace Orders.Api.Managers
 		/// </summary>
 		/// <param name="orderDTO">order data to be added</param>
 		/// <returns>newly created order with its details as orderDto</returns>
-		public OrderDTO AddOrder(OrderDTO orderDTO)
+		public async Task<OrderDTO> AddOrderAsync(OrderInsertDTO orderInsertDTO)
 		{
 			// Check if an order with the same OrderNumber already exists
-			if (orderRepository.ExistsWithOrderNumber(orderDTO.OrderNumber))
-				throw new InvalidOperationException($"Čislo objednavky {orderDTO.OrderNumber} je již použito.");
+			if (orderRepository.ExistsWithOrderNumber(orderInsertDTO.OrderNumber))
+				throw new InvalidOperationException($"Čislo objednavky {orderInsertDTO.OrderNumber} je již použito.");
 
-			Order order = mapper.Map<Order>(orderDTO);  //mapping inserted orderDTO to the Order entity
+			Order order = mapper.Map<Order>(orderInsertDTO);  //mapping inserted orderDTO to the Order entity
 			order.State = OrderState.New;				//new order is inserted with status New
-			order.OrderId = default;					// reset the orderid to default for auto-generation in the db
-			Order addedOrder = orderRepository.Insert(order); // new order added into repository
+			order.OrderId = default;                    // reset the orderid to default for auto-generation in the db
+
+			order = await orderRepository.InsertAsync(order);
+			Order addedOrder = await orderRepository.GetOrderByNumberAsync(order.OrderNumber); // new order added into repository
 
 			return mapper.Map<OrderDTO>(addedOrder);	//inserted order entity mapped back to orderDTO for return
 		}

@@ -36,6 +36,6 @@ namespace Orders.Api.Models
 		/// </summary>
 		[MinLength(1, ErrorMessage = "Alespoň jedna položka musí být uvedena.")]
 		[JsonPropertyName("Položky objednávky")]
-		public IList<ProductDTO> OrderItems { get; set; } = new List<ProductDTO>(); // inic. as empty list, so it is not null by default
+		public IList<OrderItemDTO> OrderItems { get; set; } = new List<OrderItemDTO>(); // inic. as empty list, so it is not null by default
 	}
 }

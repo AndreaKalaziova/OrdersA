@@ -31,16 +31,16 @@ namespace Orders.Api.Controllers
 		/// <param name="orderDTO">order data to be added</param>
 		/// <returns>newly created order with its details as orderDTO</returns>
 		[HttpPost]
-		public IActionResult AddOrder([FromBody] OrderDTO order)
-		{ 
+		public async Task<IActionResult> AddOrderAsync([FromBody] OrderInsertDTO order)
+		{
 			//check if OrderDTO inserted as per requirements
-			if(!ModelState.IsValid)
+			if (!ModelState.IsValid)
 				return BadRequest(ModelState);
 
 			try
 			{
 				// atempot to add the order
-				OrderDTO? createdOrder = orderManager.AddOrder(order);
+				OrderDTO? createdOrder = await orderManager.AddOrderAsync(order); 
 				return StatusCode(StatusCodes.Status201Created, createdOrder);
 			}
 			catch (InvalidOperationException ex)

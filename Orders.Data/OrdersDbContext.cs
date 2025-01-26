@@ -11,11 +11,11 @@ namespace Orders.Data
 	public class OrdersDbContext : DbContext
 	{
 		/// <summary>
-		/// DbSet representing collection of Order entities in db
+		/// DbSet representing collection of Order entities in db = Order table
 		/// </summary>
 		public DbSet<Order>? Orders { get; set; }
 		/// <summary>
-		/// DbSet representing collection of Product entities in db
+		/// DbSet representing collection of Product entities in db = Product table
 		/// </summary>
 		public DbSet<Product> Products { get; set; }
 		public OrdersDbContext(DbContextOptions<OrdersDbContext> options) : base(options)
@@ -32,7 +32,7 @@ namespace Orders.Data
 				{
 					OrderId = 1,
 					OrderNumber = 1001,
-					CustomerName = "Jan Novak",
+					CustomerName = "Jan Dub",
 					Issued = new DateTime(2025, 01, 18),
 					State = OrderState.New,
 				},
@@ -54,33 +54,53 @@ namespace Orders.Data
 				}
 			);
 
-			// testing data (related to orders via OrderId)
+			//testing data for OrderItems with product
+			modelBuilder.Entity<OrderItem>().HasData(
+				new OrderItem
+				{
+					OrderItemId = 1,
+					OrderId = 1,	// to which order this OrderItem belongs to
+					ProductId = 1,	// which product belongs to this orderLine
+					Quantity = 1	//qunatity in the OrderLine
+				},
+				new OrderItem
+				{
+					OrderItemId = 2,
+					OrderId = 2,
+					ProductId = 2,
+					Quantity = 2
+				},
+				new OrderItem
+				{
+					OrderItemId = 3,
+					OrderId = 3,
+					ProductId = 3,
+					Quantity = 1
+				}
+			);
+
+			// testing data for products
 			modelBuilder.Entity<Product>().HasData(
 				new Product
 				{
 					ProductId = 1,
-					Name = "keyboard",
-					Quantity = 3,
+					ProductName = "keyboard",
 					Price = 450,
-					OrderId = 1  // OrderId to which this belongs
 				},
 				new Product
 				{
 					ProductId = 2,
-					Name = "speaker Logitech",
-					Quantity = 2,
+					ProductName = "speaker Logitech",
 					Price = 875,
-					OrderId = 2 
 				},
 				new Product
 				{
 					ProductId = 3,
-					Name = "headphones Niceboy",
-					Quantity = 1,
+					ProductName = "headphones Niceboy",
 					Price = 1290,
-					OrderId = 3  
 				}
 			);
+
 		}
 		/// <summary>
 		/// set up of the relationships in model, using ModelBuilder
@@ -99,12 +119,21 @@ namespace Orders.Data
 			modelBuilder
 				.Entity<Order>()
 				.HasMany(o => o.OrderItems)			// 1 order has many items
-				.WithOne(p => p.Order)				// 1 item belongs to exactly 1 order
-				.HasForeignKey(p => p.OrderId);		// OrderId is the foreight key in the OrderItem/Product table 
+				.WithOne(oi => oi.Order)				// 1 item belongs to exactly 1 order
+				.HasForeignKey(oi => oi.OrderId)       // OrderId is the foreight key in the OrderItem table
+				.OnDelete(DeleteBehavior.Restrict); // prevents deletion of the order if has any product/orderItems
+
+			//relationship 1 OrderItem has 1 Product / 1 product can have many OrderItems 
+			modelBuilder
+				.Entity<OrderItem>()
+				.HasOne(oi => oi.Product)			// 1 orderItem has 1 product
+				.WithMany()							// 1 product belongs to many OrderLines
+				.HasForeignKey(oi => oi.ProductId) // ProductId is the foreight key in the OrderItem table
+				.OnDelete(DeleteBehavior.Restrict); // prevents deletion of the OrderItem if has any products
 
 			AddTestingData(modelBuilder);
 
-			// prevents cascading deletion
+			// prevents cascading deletion - Orders or Products cannot be deleted if they belong to OrderItem
 			IEnumerable<IMutableForeignKey> cascadeFKs = modelBuilder.Model.GetEntityTypes()
 				.SelectMany(type => type.GetForeignKeys())               // retrieve all foreighn keys
 				.Where(foreignKey => !foreignKey.IsOwnership && foreignKey.DeleteBehavior == DeleteBehavior.Cascade);   //look for cascade behaviour

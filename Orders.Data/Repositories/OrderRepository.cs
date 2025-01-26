@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Orders.Data.Interfaces;
 using Orders.Data.Models;
 
@@ -20,18 +21,20 @@ namespace Orders.Data.Repositories
 		{
 			return await dbSet
 				.Include(o => o.OrderItems)     // Include OrderItems
-				.ToListAsync(); 
+				.ThenInclude(oi => oi.Product)	// include Product into OrderItem
+				.ToListAsync();
 		}
 
 		/// <summary>
-		/// Checks if an order with the given OrderNumber exists in the repository.
+		/// insert new order to db
 		/// </summary>
-		/// <param name="orderNumber">The OrderNumber to check.</param>
-		/// <returns>True if an order with the OrderNumber exists; otherwise, false.</returns>
-		public bool ExistsWithOrderNumber(ulong orderNumber)
-		{
-			// Use a query to check for existence
-			return ordersDbContext.Orders.Any(i => i.OrderNumber == orderNumber);
+		/// <param name="order"></param>
+		/// <returns>newly added order</returns>
+		public async Task<Order> InsertAsync(Order order)
+		{ 
+			EntityEntry<Order> entityEntry = await dbSet.AddAsync(order);   //add the order entity to dbSet
+			await ordersDbContext.SaveChangesAsync();						// save changes to db 
+			return entityEntry.Entity;										// return the added order entuity
 		}
 
 		/// <summary>
@@ -43,7 +46,19 @@ namespace Orders.Data.Repositories
 		{
 			return await dbSet
 				.Include(o => o.OrderItems)
+				.ThenInclude(oi => oi.Product)
 				.FirstOrDefaultAsync(o => o.OrderNumber == orderNumber);
+		}
+
+		/// <summary>
+		/// Checks if an order with the given OrderNumber exists in the repository.
+		/// </summary>
+		/// <param name="orderNumber">The OrderNumber to check.</param>
+		/// <returns>True if an order with the OrderNumber exists; otherwise, false.</returns>
+		public bool ExistsWithOrderNumber(ulong orderNumber)
+		{
+			// Use dbSet for a query to check for existence
+			return dbSet.Any(i => i.OrderNumber == orderNumber);
 		}
 
 		/// <summary>
