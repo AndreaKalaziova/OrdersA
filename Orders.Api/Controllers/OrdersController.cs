@@ -66,13 +66,34 @@ namespace Orders.Api.Controllers
 			{
 				//updates the order state based on payment info (true = paid/false=not paid)
 				var updatedOrder = await orderManager.UpdateOrderStateAsync(paymentInfo);
-				return Ok(updatedOrder);		//return updated order details
+				return Ok(updatedOrder);        //return updated order details
 			}
 			catch (InvalidOperationException ex)
 			{
 				//retunr not found if the order does not exists
 				return NotFound(ex.Message);
 			}
+		}
+
+		/// <summary>
+		/// for handling recieving information about payment -> that will upadte order status accordingly 
+		/// using a queue
+		/// </summary>
+		/// <param name="paymentInfo"></param>
+		/// <param name="paymentQueue"></param>
+		/// <returns></returns>
+		[HttpPost("payment-with-queue")]
+		public async Task<IActionResult> UpdateOrderStatusAsync([FromBody] PaymentInfoDTO paymentInfo, [FromServices] PaymentQueueManager paymentQueue)
+		{
+			// Check if payment info is provided
+			if (paymentInfo == null)
+				return BadRequest("Informace o platbe musi byt zadano (true=zaplaceno / false=nezaplaceno).");
+
+			// Simulate async behavior when enqueuing
+			//Task.Run() solution for making non-async API fit into an async workflow
+			await Task.Run(() => paymentQueue.Enqueue(paymentInfo));
+
+			return Ok("Informace o platbě úspěšně zařazeny do fronty.");
 		}
 	}
 }

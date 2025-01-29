@@ -33,6 +33,11 @@ builder.Services.AddScoped<IOrderRepository, orderRepository>();
 //register business logic managers for DI, and background manager
 builder.Services.AddScoped<IOrderManager, OrderManager>();
 
+//in-memory queue for storing and retrieving payment information
+builder.Services.AddSingleton<PaymentQueueManager>();
+//continuously processes payment information from the queue
+builder.Services.AddHostedService<PaymentProcessingManager>();
+
 //configure AutoMapper and specify the configure profile
 builder.Services.AddAutoMapper(typeof(AutomapperConfigurationProfile));
 
